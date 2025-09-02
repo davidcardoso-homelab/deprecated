@@ -1,0 +1,42 @@
+services:
+  # Prowlarr - Indexer Manager
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+    volumes:
+      - volume_prowlarr:/config
+    restart: unless-stopped
+    networks:
+      - proxy
+      - media
+      - monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.homelab`)"
+      - "traefik.http.routers.prowlarr.entrypoints=web"
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+      - "traefik.docker.network=proxy"
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 512M
+
+networks:
+  media:
+    driver: bridge
+    name: media
+  proxy:
+    driver: bridge
+    name: proxy
+  monitoring:
+    driver: bridge
+    name: monitoring
+
+volumes:
+  volume_prowlarr:
+    external: true

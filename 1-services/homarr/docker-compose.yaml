@@ -1,0 +1,38 @@
+#---------------------------------------------------------------------#
+#     Homarr - A simple, yet powerful dashboard for your server.      #
+#---------------------------------------------------------------------#
+services:
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - volume_homarr:/appdata
+    environment:
+      - SECRET_ENCRYPTION_KEY=20e1fce874ffa592afc0818b9406b74fc694ec216a3b88f61ece8958bed0fab2
+    networks:
+      - proxy
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1G
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homarr.rule=Host(`home.homelab`)" # Change to your domain
+      - "traefik.http.routers.homarr.entrypoints=web"
+      - "traefik.http.services.homarr.loadbalancer.server.port=7575"
+      - "traefik.docker.network=proxy"
+
+networks:
+  proxy:
+    driver: bridge
+    name: proxy
+
+volumes:
+  volume_homarr:
+    external: true
+#---------------------------------------------------------------------#
+#     End of Homarr Docker Compose Configuration File                   #
+#---------------------------------------------------------------------#

@@ -1,0 +1,41 @@
+services:
+  traefik:
+    image: traefik:v3.4.1
+    container_name: traefik
+    restart: always
+    command:
+      - --configFile=/etc/traefik/traefik.yaml
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yaml:/etc/traefik/traefik.yaml
+      - volume_traefik:/var/log/
+      # - ./acme.json:/acme.json
+    networks:
+      - proxy
+      - monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.homelab`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.docker.network=proxy"
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 200M
+
+networks:
+  proxy:
+    driver: bridge
+    name: proxy
+  monitoring:
+    driver: bridge
+    name: monitoring
+
+volumes:
+  volume_traefik:
+    external: true

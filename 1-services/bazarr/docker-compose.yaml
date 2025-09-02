@@ -1,0 +1,48 @@
+services:
+  # Sonarr - Gerenciador de Séries
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+    volumes:
+      - volume_bazarr:/config
+      - volume_filmes:/movies #optional
+      - volume_series:/tv #optional
+    restart: unless-stopped
+    networks:
+      - proxy
+      - media
+      - monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.homelab`)"
+      - "traefik.http.routers.bazarr.entrypoints=web"
+      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+      - "traefik.docker.network=proxy"
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 512M
+
+networks:
+  media:
+    driver: bridge
+    name: media
+  proxy:
+    driver: bridge
+    name: proxy
+  monitoring:
+    driver: bridge
+    name: monitoring
+
+volumes:
+  volume_bazarr:
+    external: true
+  volume_series:
+    external: true
+  volume_filmes:
+    external: true

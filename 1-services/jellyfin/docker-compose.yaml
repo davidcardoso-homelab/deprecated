@@ -1,0 +1,77 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    volumes:
+      - volume_jellyfin_config:/config
+      - volume_jellyfin_cache:/cache
+      - volume_media:/media:ro  # Media montada como somente leitura para segurança
+    # Dispositivos para aceleração de hardware - descomente a opção adequada para seu hardware
+    devices:
+      # Para Intel QuickSync
+      - /dev/dri:/dev/dri
+      # Para NVIDIA GPU (descomente se disponível)
+      # - /dev/nvidia0:/dev/nvidia0
+      # - /dev/nvidiactl:/dev/nvidiactl
+      # - /dev/nvidia-modeset:/dev/nvidia-modeset
+      # - /dev/nvidia-uvm:/dev/nvidia-uvm
+    restart: 'unless-stopped'
+    ports:
+      # DLNA (opcional, descomente se necessário)
+      - "1900:1900/udp"  # DLNA discovery
+      - "7359:7359/udp"  # Jellyfin auto-discovery
+    environment:
+      - PUID=1000  # ID de usuário do host
+      - PGID=1000  # ID de grupo do host
+      - TZ=America/Sao_Paulo  # Timezone para logs e agendamentos
+      - JELLYFIN_PUBLISHED_SERVER_URL=http://media.homelab  # URL pública para o Jellyfin
+      # Configurações de aceleração de hardware - descomente conforme seu hardware
+      - JELLYFIN_FFmpeg__EnableHardwareEncoding=true
+      - JELLYFIN_HardwareAccelerationType=vaapi  # Para Intel
+      # - JELLYFIN_HardwareAccelerationType=nvenc  # Para NVIDIA
+      # - JELLYFIN_HardwareAccelerationType=amf    # Para AMD
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.jellyfin.rule=Host(`media.homelab`)"
+        - "traefik.http.routers.jellyfin.entrypoints=web"
+        - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+        - "traefik.docker.network=proxy"
+        # Adiciona rótulos para monitoramento com Prometheus
+        - "prometheus.enable=true"
+        - "prometheus.port=8096"
+        - "prometheus.path=/metrics"
+    networks:
+        - proxy
+        - media
+        - monitoring  # Adicionado para integração com monitoramento
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: 4
+          memory: 8G
+
+
+networks:
+  media:
+    driver: bridge
+    name: media
+  proxy:
+    driver: bridge
+    name: proxy
+  monitoring:
+    driver: bridge
+    name: monitoring
+
+volumes:
+    volume_jellyfin_config:
+        external: true
+    volume_jellyfin_cache:
+        external: true
+    volume_media:
+        external: true

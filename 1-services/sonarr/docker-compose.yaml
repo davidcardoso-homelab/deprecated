@@ -1,0 +1,51 @@
+services:
+  # Sonarr - Gerenciador de Séries
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+    volumes:
+      - volume_sonarr:/config
+      - volume_series:/tv
+      - volume_downloads:/downloads
+    restart: unless-stopped
+    networks:
+      - proxy
+      - media
+      - monitoring
+    depends_on:
+      - prowlarr
+      - qbittorrent
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.homelab`)"
+      - "traefik.http.routers.sonarr.entrypoints=web"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      - "traefik.docker.network=proxy"
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: 1G
+
+networks:
+  media:
+    driver: bridge
+    name: media
+  proxy:
+    driver: bridge
+    name: proxy
+  monitoring:
+    driver: bridge
+    name: monitoring
+
+volumes:
+  volume_sonarr:
+    external: true
+  volume_series:
+    external: true
+  volume_downloads:
+    external: true

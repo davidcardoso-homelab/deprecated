@@ -1,0 +1,46 @@
+services:
+  # Jellyseerr - Interface de Requisições
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=America/Sao_Paulo
+    volumes:
+      - volume_jellyseerr:/app/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped
+    networks:
+      - proxy
+      - media
+      - monitoring
+    depends_on:
+      - sonarr
+      - radarr
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.homelab`)"
+      - "traefik.http.routers.jellyseerr.entrypoints=web"
+      - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
+      - "traefik.docker.network=proxy"
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 512M
+
+networks:
+  media:
+    driver: bridge
+    name: media
+  proxy:
+    driver: bridge
+    name: proxy
+  monitoring:
+    driver: bridge
+    name: monitoring
+
+volumes:
+  volume_jellyseerr:
+    external: true

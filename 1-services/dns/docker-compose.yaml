@@ -1,0 +1,14 @@
+networks:
+  dns:
+    name: dns
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24
+  proxy:
+    driver: bridge
+    name: proxy
+
+include:
+  - ./pi-hole/docker-compose.yaml
+  - ./unbound/docker-compose.yaml

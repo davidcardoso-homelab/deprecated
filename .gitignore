@@ -1,0 +1,25 @@
+# Ignorar arquivos de variáveis de ambiente e credenciais
+*.env
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar diretórios de volumes e dados locais
+volumes/
+
+# Ignorar arquivos temporários do sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar arquivos de backup
+*~
+
+# Ignorar arquivos de cache do editor
+.vscode/
+.idea/
+
+# Ignorar arquivos de histórico de shell
+*.sh_history
+
+# Exemplo específico para Pi-hole
+1-services/dns/pi-hole/.env

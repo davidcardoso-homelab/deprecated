@@ -1,0 +1,20 @@
+networks:
+  proxy:
+    driver: bridge
+    name: proxy
+  monitoring:
+    driver: bridge
+    name: monitoring
+
+include:
+  - ./0-reverse-proxy/docker-compose.yaml
+  - ./1-services/dns/docker-compose.yaml
+  - ./1-services/monitoring/docker-compose.yaml
+  - ./1-services/homarr/docker-compose.yaml
+  - ./1-services/jellyfin/docker-compose.yaml
+  - ./1-services/qbittorrent/docker-compose.yaml
+  - ./1-services/sonarr/docker-compose.yaml
+  - ./1-services/prowlarr/docker-compose.yaml
+  - ./1-services/radarr/docker-compose.yaml
+  - ./1-services/jellyseerr/docker-compose.yaml
+  - ./1-services/bazarr/docker-compose.yaml

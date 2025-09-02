@@ -1,0 +1,34 @@
+log:
+  level: "INFO"
+  filePath: "/var/log/traefik.log"
+  maxSize: 50
+  maxBackups: 3
+  maxAge: 15
+
+entrypoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  metrics:
+    address: ":8082"
+
+api:
+  dashboard: true
+  insecure: true
+
+# certificatesResolvers:
+#   letsencrypt:
+#     acme:
+#       email: davidcardoso01@homelab
+#       storage: /acme.json
+#       httpChallenge:
+#         entryPoint: web
+
+providers:
+  docker:
+    exposedByDefault: false
+
+metrics:
+  prometheus:
+    entryPoint: metrics

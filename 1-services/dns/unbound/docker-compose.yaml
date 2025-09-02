@@ -1,0 +1,38 @@
+services:
+  init-unbound:
+    image: alpine:latest
+    container_name: init-unbound
+    entrypoint: >
+      sh -c "
+        apk add --no-cache unbound curl &&
+        curl -o /data/root.hints https://www.internic.net/domain/named.cache &&
+        unbound-anchor -a /data/root.key
+      "
+    volumes:
+      - volume_unbound:/data
+    restart: "no"
+    networks:
+      dns:
+        ipv4_address: 10.10.0.5
+
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound
+    depends_on:
+      - init-unbound
+    volumes:
+      - volume_unbound:/opt/unbound/etc/unbound/
+      - ./unbound.conf:/opt/unbound/etc/unbound/unbound.conf
+    networks:
+      dns:
+        ipv4_address: 10.10.0.3
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 150MiB
+    restart: unless-stopped
+
+volumes:
+  volume_unbound:
+    external: true

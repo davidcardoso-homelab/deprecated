@@ -1,0 +1,88 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - volume_prometheus:/prometheus
+    networks:
+      - monitoring
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.wal-compression'
+    labels:
+      - "traefik.enable=false"
+    deploy:
+      resources:
+        limits:
+          memory: 500MiB
+          cpus: 1
+  
+  nodexporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    networks:
+      - monitoring
+    labels:
+      - "traefik.enable=false"
+    deploy:
+      resources:
+        limits:
+          memory: 50MiB
+          cpus: 0.2
+  
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    networks:
+      - monitoring
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    labels:
+      - "traefik.enable=false"
+    deploy:
+      resources:
+        limits:
+          memory: 100MiB
+          cpus: 0.2
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    networks:
+      - monitoring
+      - proxy
+    environment:
+      - GF_SERVER_ROOT_URL=http://grafana.homelab
+    volumes:
+      - volume_grafana:/var/lib/grafana
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.homelab`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.docker.network=proxy"
+    deploy:
+      resources:
+        limits:
+          memory: 500MiB
+          cpus: 0.5
+
+networks:
+  monitoring:
+    driver: bridge
+    name: monitoring
+  proxy:
+    driver: bridge
+    name: proxy
+
+volumes:
+  volume_prometheus:
+    external: true
+  volume_grafana:
+    external: true
